@@ -1,0 +1,10 @@
+streamlit
+pandas
+numpy
+scikit-learn
+matplotlib
+plotly
+scipy
+flask
+flask-cors
+paho-mqtt
