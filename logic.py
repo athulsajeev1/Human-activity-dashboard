@@ -1,6 +1,5 @@
 import os
 import time
-import socket
 import json
 import threading
 import numpy as np
@@ -26,14 +25,6 @@ ACTIVITY_META = {
 #  NETWORKING & TELEMETRY
 # ──────────────────────────────────────────────────────────────
 
-def get_local_ip():
-    """Best-effort local LAN IP for phone configuration hints."""
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-            s.connect(("8.8.8.8", 80))
-            return s.getsockname()[0]
-    except Exception:
-        return "127.0.0.1"
 
 def process_sensor_chunk_shared(ax, ay, az, buffer, lock):
     """Common logic for appending data to buffer with G-force normalization."""
