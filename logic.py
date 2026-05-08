@@ -64,29 +64,20 @@ def run_mqtt_client_thread(buffer, lock):
         try:
             payload = msg.payload.decode('utf-8')
             obj = json.loads(payload)
-            accel = None
             
-            # Try common keys
-            for key in ['accelerometer', 'accel', 'linear', 'sensor']:
-                if key in obj and isinstance(obj[key], list) and len(obj[key]) >= 3:
-                    accel = obj[key]; break
-            
-            if not accel:
-                # Fallback: find any 3-element numeric list
-                for k, v in obj.items():
-                    if isinstance(v, list) and len(v) >= 3:
-                        if all(isinstance(x, (int, float)) for x in v[:3]):
-                            accel = v; break
-            
-            if accel:
+            # Since your Android app sends exactly {"accelerometer": [x, y, z]}
+            if 'accelerometer' in obj and isinstance(obj['accelerometer'], list) and len(obj['accelerometer']) >= 3:
+                accel = obj['accelerometer']
+                # Send the data to the buffer
                 process_sensor_chunk_shared(accel[0], accel[1], accel[2], buffer, lock)
+                # Show a log in the terminal every 10 messages to confirm it's working
                 if len(buffer) % 10 == 0:
-                    pass # Optional debug print
+                    print(f"📡 [MQTT] Received data from Android! Buffer size: {len(buffer)}")
             else:
-                print(f"⚠️ [MQTT] Unknown data format: {list(obj.keys())}")
+                print(f"⚠️ [MQTT] Unknown data format: {payload}")
         except Exception as e:
-            pass # Ignore malformed messages
-
+            print(f"❌ [MQTT] Error processing message: {e}")
+            pass
     try:
         client = mqtt.Client()
         client.on_connect = on_connect
@@ -95,6 +86,7 @@ def run_mqtt_client_thread(buffer, lock):
         client.loop_forever()
     except Exception as e:
         print(f"❌ [LOGIC] MQTT Client Error: {e}")
+
 
 # ──────────────────────────────────────────────────────────────
 #  CORE ML LOGIC
